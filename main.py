@@ -6,10 +6,10 @@ app = Flask(__name__)
 @app.route("/")
 def index():
     urls = [
-        "https://www.surveycake.com/s/XGYq0",
-        "https://www.surveycake.com/s/MoeBD",
-        "https://www.surveycake.com/s/BbGBV",
-        "https://www.surveycake.com/s/1MGw1"
+        "https://www.surveycake.com/s/2lk7l",
+        "https://www.surveycake.com/s/XGmXr",
+        "https://www.surveycake.com/s/qG4PL",
+        "https://www.surveycake.com/s/bGe8v"
     ]
     return redirect(random.choice(urls), code=302)
 
