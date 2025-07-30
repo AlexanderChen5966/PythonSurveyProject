@@ -1,0 +1,51 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pkl
+*.db
+*.sqlite3
+
+# 虛擬環境
+.venv/
+env/
+venv/
+
+# VS Code / IDE 設定
+.vscode/
+.idea/
+
+# macOS 系統檔案
+.DS_Store
+
+# FastAPI 日誌或暫存
+*.log
+*.tmp
+
+# dotenv 環境變數檔案（❗請勿上傳）
+.env
+.env.*
+
+# Poetry / pip
+poetry.lock
+pip-log.txt
+
+# Playwright 瀏覽器下載
+playwright/.cache/
+.playwright/
+
+# 部署檔案（選擇性）
+docker-compose.override.yml
+*.bak
+*.swp
+
+# 測試資料
+/test_output/
+*.csv
+*.json
+
+# __pyinstaller__ 打包產物
+dist/
+build/
+*.spec
