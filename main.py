@@ -59,7 +59,7 @@ def assign_survey():
 
     if not available:
         conn.close()
-        return "已經收滿800份問卷，謝謝參與！"
+        return "已經收滿120份問卷，謝謝參與！"
 
     selected = random.choice(available)
     survey_id = selected['id']
