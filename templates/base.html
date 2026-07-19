@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}問卷管理{% endblock %}</title>
+  <style>
+    body { font-family: -apple-system, "PingFang TC", "Microsoft JhengHei", sans-serif;
+           max-width: 860px; margin: 2rem auto; padding: 0 1rem; color: #222; }
+    h1 { font-size: 1.4rem; }
+    table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+    th, td { border: 1px solid #ddd; padding: .5rem .6rem; text-align: left; font-size: .92rem; }
+    th { background: #f5f5f5; }
+    .bar { background: #eee; border-radius: 4px; height: 10px; min-width: 120px; overflow: hidden; }
+    .bar > div { background: #4a90d9; height: 100%; }
+    .muted { color: #888; font-size: .85rem; }
+    .btn { display: inline-block; padding: .3rem .7rem; border: 1px solid #bbb; border-radius: 4px;
+           background: #fff; color: #222; text-decoration: none; font-size: .88rem; cursor: pointer; }
+    .btn:hover { background: #f0f0f0; }
+    .btn-primary { background: #4a90d9; border-color: #4a90d9; color: #fff; }
+    .btn-primary:hover { background: #3a7cc4; }
+    .btn-danger { color: #c0392b; border-color: #c0392b; }
+    form.inline { display: inline; }
+    label { display: block; margin: .8rem 0 .25rem; font-weight: 600; font-size: .9rem; }
+    input[type=text], input[type=url], input[type=number], input[type=password], textarea {
+      width: 100%; padding: .45rem; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+    .error { color: #c0392b; }
+    .topbar { display: flex; justify-content: space-between; align-items: center; }
+    .actions { margin: 1rem 0; display: flex; gap: .5rem; flex-wrap: wrap; }
+    .off { color: #aaa; }
+  </style>
+</head>
+<body>
+{% block body %}{% endblock %}
+</body>
+</html>
