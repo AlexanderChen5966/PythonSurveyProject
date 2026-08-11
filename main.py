@@ -15,6 +15,11 @@ DATABASE = 'survey.db'
 ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'admin')
 TOKEN_TTL_HOURS = 2  # pending token 有效時間
 
+# 計數模式：
+#   COUNT_ON_ASSIGN=1 → 分配當下即計數（等同舊版行為，不需 SurveyCake 任何設定）
+#   未設定（預設）      → 方案 A：填答者填完導回 /complete 才計數
+COUNT_ON_ASSIGN = os.environ.get('COUNT_ON_ASSIGN', '') == '1'
+
 # 初次建庫時匯入的預設問卷（之後皆由 /admin 管理）
 DEFAULT_SURVEYS = [
     ("問卷一", "https://www.surveycake.com/s/xyV6y", 30),
@@ -127,10 +132,19 @@ def assign_survey():
     selected = min(candidates, key=lambda s: s['completed'])
 
     token = secrets.token_urlsafe(24)
-    c.execute(
-        "INSERT INTO responses (token, survey_id, status, created_at) VALUES (?, ?, 'pending', ?)",
-        (token, selected['id'], datetime.now().isoformat(timespec='seconds'))
-    )
+    now = datetime.now().isoformat(timespec='seconds')
+    if COUNT_ON_ASSIGN:
+        # 舊版行為：分配即計數，不依賴 SurveyCake 結束頁導向
+        c.execute(
+            "INSERT INTO responses (token, survey_id, status, created_at, completed_at) "
+            "VALUES (?, ?, 'completed', ?, ?)",
+            (token, selected['id'], now, now)
+        )
+    else:
+        c.execute(
+            "INSERT INTO responses (token, survey_id, status, created_at) VALUES (?, ?, 'pending', ?)",
+            (token, selected['id'], now)
+        )
     conn.commit()
     conn.close()
 
