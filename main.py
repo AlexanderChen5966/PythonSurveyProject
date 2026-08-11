@@ -7,13 +7,13 @@ app = Flask(__name__)
 DATABASE = 'survey.db'
 
 SURVEY_URLS = {
-    1: "https://www.surveycake.com/s/xyV6y",
-    2: "https://www.surveycake.com/s/nxQQm",
-    3: "https://www.surveycake.com/s/p7PPV",
-    4: "https://www.surveycake.com/s/GrmmK"
+    1: "https://www.surveycake.com/s/eBZRq",
+    2: "https://www.surveycake.com/s/GrlMP",
+    3: "https://www.surveycake.com/s/Pbx7y",
+    4: "https://www.surveycake.com/s/RL7Ry"
 }
 
-MAX_COUNT_PER_SURVEY = 30 # 每種問卷 30 份
+MAX_COUNT_PER_SURVEY = 300 # 每種問卷 300 份
 
 def get_db_connection():
     conn = sqlite3.connect(DATABASE)
