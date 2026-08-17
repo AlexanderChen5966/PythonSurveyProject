@@ -13,7 +13,7 @@ SURVEY_URLS = {
     4: "https://www.surveycake.com/s/RL7Ry"
 }
 
-MAX_COUNT_PER_SURVEY = 300 # 每種問卷 300 份
+MAX_COUNT_PER_SURVEY = 500 # 每種問卷 500 份
 
 def get_db_connection():
     conn = sqlite3.connect(DATABASE)
@@ -59,7 +59,7 @@ def assign_survey():
 
     if not available:
         conn.close()
-        return "已經收滿120份問卷，謝謝參與！"
+        return "已經收滿2000份問卷，謝謝參與！"
 
     selected = random.choice(available)
     survey_id = selected['id']
