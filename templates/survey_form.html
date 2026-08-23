@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}{{ '編輯問卷' if survey else '新增問卷' }}{% endblock %}
+{% block body %}
+<h1>{{ '編輯問卷' if survey else '新增問卷' }}</h1>
+<form method="post" style="max-width: 480px">
+  <label for="name">名稱</label>
+  <input type="text" id="name" name="name" value="{{ survey.name if survey else '' }}" required>
+
+  <label for="url">SurveyCake 問卷網址</label>
+  <input type="url" id="url" name="url" value="{{ survey.url if survey else '' }}"
+         placeholder="https://www.surveycake.com/s/xxxxx" required>
+
+  <label for="max_count">目標份數</label>
+  <input type="number" id="max_count" name="max_count" min="1"
+         value="{{ survey.max_count if survey else 30 }}" required>
+
+  <label>
+    <input type="checkbox" name="is_active" value="1"
+           {% if not survey or survey.is_active %}checked{% endif %}>
+    啟用（停用後不再分配給填答者）
+  </label>
+
+  <p>
+    <button class="btn btn-primary" type="submit">儲存</button>
+    <a class="btn" href="{{ url_for('admin_dashboard') }}">取消</a>
+  </p>
+</form>
+{% if not survey %}
+<p class="muted">
+  新增後請到 SurveyCake 後台完成兩項設定：<br>
+  1. 新增名為 <code>token</code> 的隱藏欄位。<br>
+  2. 結束頁設定送出後導向 <code>https://＜本服務網域＞/complete?token={token}</code>（變數語法以 SurveyCake 後台為準）。
+</p>
+{% endif %}
+{% endblock %}

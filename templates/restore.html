@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}還原備份{% endblock %}
+{% block body %}
+<h1>還原備份</h1>
+{% if error %}<p class="error">{{ error }}</p>{% endif %}
+<p class="muted">貼上先前「匯出備份」下載的 JSON 內容。⚠️ 還原會<strong>完全覆蓋</strong>目前所有問卷與計數。</p>
+<form method="post" onsubmit="return confirm('確定還原？目前資料將被覆蓋。')">
+  <textarea name="payload" rows="14" required placeholder='{"exported_at": ..., "surveys": [...], "responses": [...]}'></textarea>
+  <p>
+    <button class="btn btn-primary" type="submit">還原</button>
+    <a class="btn" href="{{ url_for('admin_dashboard') }}">取消</a>
+  </p>
+</form>
+{% endblock %}

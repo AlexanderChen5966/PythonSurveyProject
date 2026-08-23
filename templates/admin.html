@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}問卷儀表板{% endblock %}
+{% block body %}
+<div class="topbar">
+  <h1>問卷儀表板</h1>
+  <a class="btn" href="{{ url_for('admin_logout') }}">登出</a>
+</div>
+
+<div class="actions">
+  <a class="btn btn-primary" href="{{ url_for('survey_new') }}">＋ 新增問卷</a>
+  <a class="btn" href="{{ url_for('admin_export') }}">匯出備份</a>
+  <a class="btn" href="{{ url_for('admin_restore') }}">還原備份</a>
+</div>
+
+<table>
+  <tr>
+    <th>問卷</th><th>進度</th><th>完成／目標</th><th>填答中</th><th>校正</th><th>操作</th>
+  </tr>
+  {% for s in surveys %}
+  <tr {% if not s.is_active %}class="off"{% endif %}>
+    <td>
+      {{ s.name }}{% if not s.is_active %}（停用）{% endif %}<br>
+      <span class="muted">{{ s.url }}</span>
+    </td>
+    <td>
+      <div class="bar"><div style="width: {{ (100 * s.completed / s.max_count) if s.max_count else 0 }}%"></div></div>
+    </td>
+    <td>{{ s.completed }} / {{ s.max_count }}</td>
+    <td>{{ pending.get(s.id, 0) }}</td>
+    <td>
+      <form class="inline" method="post" action="{{ url_for('survey_adjust', survey_id=s.id) }}">
+        <button class="btn" name="delta" value="1">＋1</button>
+        <button class="btn" name="delta" value="-1">−1</button>
+      </form>
+    </td>
+    <td>
+      <a class="btn" href="{{ url_for('survey_edit', survey_id=s.id) }}">編輯</a>
+      <form class="inline" method="post" action="{{ url_for('survey_delete', survey_id=s.id) }}"
+            onsubmit="return confirm('確定刪除「{{ s.name }}」？其計數紀錄將一併刪除。')">
+        <button class="btn btn-danger">刪除</button>
+      </form>
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+
+<p class="muted">
+  「填答中」為已發出但尚未完成的 token 數（逾時自動失效）。<br>
+  校正按鈕用於與 SurveyCake 後台對帳：＋1 補登漏計、−1 移除最近一筆完成紀錄。<br>
+  ⚠️ 搜集期間請勿重新部署，並定期「匯出備份」。
+</p>
+{% endblock %}

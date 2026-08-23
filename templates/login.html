@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}管理登入{% endblock %}
+{% block body %}
+<h1>管理登入</h1>
+{% if error %}<p class="error">{{ error }}</p>{% endif %}
+<form method="post" style="max-width: 320px">
+  <label for="password">管理密碼</label>
+  <input type="password" id="password" name="password" autofocus required>
+  <p><button class="btn btn-primary" type="submit">登入</button></p>
+</form>
+{% endblock %}
