@@ -22,10 +22,8 @@ COUNT_ON_ASSIGN = os.environ.get('COUNT_ON_ASSIGN', '') == '1'
 
 # 初次建庫時匯入的預設問卷（之後皆由 /admin 管理）
 DEFAULT_SURVEYS = [
-    ("問卷一", "https://www.surveycake.com/s/xyV6y", 30),
-    ("問卷二", "https://www.surveycake.com/s/nxQQm", 30),
-    ("問卷三", "https://www.surveycake.com/s/p7PPV", 30),
-    ("問卷四", "https://www.surveycake.com/s/GrmmK", 30),
+    ("問卷一", "https://www.surveycake.com/s/o8Ywr", 500),
+    ("問卷二", "https://www.surveycake.com/s/0yv8y", 500),
 ]
 
 
