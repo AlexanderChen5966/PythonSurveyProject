@@ -22,10 +22,10 @@ COUNT_ON_ASSIGN = os.environ.get('COUNT_ON_ASSIGN', '') == '1'
 
 # 初次建庫時匯入的預設問卷（之後皆由 /admin 管理）
 DEFAULT_SURVEYS = [
-    ("問卷一", "https://www.surveycake.com/s/o8Ywr", 500),
-    ("問卷二", "https://www.surveycake.com/s/0yv8y", 500),
+    ("問卷一", "https://www.surveycake.com/s/0A0n3", 500),
+    ("問卷二", "https://www.surveycake.com/s/L78kR", 500),
 ]
-
+ㄊ
 def get_db_connection():
     conn = sqlite3.connect(DATABASE)
     conn.row_factory = sqlite3.Row
