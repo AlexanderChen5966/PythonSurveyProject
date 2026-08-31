@@ -26,7 +26,6 @@ DEFAULT_SURVEYS = [
     ("問卷二", "https://www.surveycake.com/s/L78kR", 500),
 ]
 
-
 def get_db_connection():
     conn = sqlite3.connect(DATABASE)
     conn.row_factory = sqlite3.Row
