@@ -145,13 +145,17 @@ def assign_survey():
                 return redirect(f"{row['url']}?{TOKEN_PARAM}={existing_token}")
             # expired：往下重新分配
 
-    # 隨機分配：在啟用且未滿額（completed < 目標）的問卷中隨機抽一份（隨機抽樣）。
+    # 隨機分配（隨機抽樣）+ 精準收滿：
+    # 以「已分配數 assigned = pending + completed」< 目標為可抽條件，
+    # 確保每份發出的連結數不超過 max_count，completed 因此永遠 ≤ max_count；
+    # 有人棄填（token 逾時 expired）會釋放名額重新開放，最終精準收斂到剛好 max_count。
     candidates = [s for s in survey_stats(c)
-                  if s['is_active'] and s['completed'] < s['max_count']]
+                  if s['is_active'] and s['assigned'] < s['max_count']]
     if not candidates:
         conn.commit()
         conn.close()
-        return "問卷已全部收滿，謝謝參與！"
+        # 可能是全部已收滿，或名額暫時被填答中的人佔用（逾時未完成會再釋放）
+        return "問卷已收滿或暫無名額，謝謝參與！"
     selected = random.choice(candidates)
 
     token = secrets.token_urlsafe(24)
