@@ -40,6 +40,8 @@ def _load_surveycake_keys():
 SURVEYCAKE_KEYS = _load_surveycake_keys()
 SURVEYCAKE_DOMAIN = os.environ.get('SURVEYCAKE_DOMAIN', 'https://www.surveycake.com')
 TOKEN_ALIAS = os.environ.get('TOKEN_ALIAS', 'token')  # 隱藏題的代號
+# SurveyCake 以「aka_<代號>」作為帶入預設值的網址參數名稱，故發連結時用 aka_token
+TOKEN_PARAM = os.environ.get('TOKEN_PARAM', f'aka_{TOKEN_ALIAS}')
 
 # 初次建庫時匯入的預設問卷（之後皆由 /admin 管理）
 DEFAULT_SURVEYS = [
@@ -137,7 +139,7 @@ def assign_survey():
             if row['status'] == 'pending':
                 conn.commit()
                 conn.close()
-                return redirect(f"{row['url']}?token={existing_token}")
+                return redirect(f"{row['url']}?{TOKEN_PARAM}={existing_token}")
             # expired：往下重新分配
 
     # 平均分配：挑完成數最低且未滿額的啟用問卷
@@ -166,7 +168,7 @@ def assign_survey():
     conn.commit()
     conn.close()
 
-    resp = make_response(redirect(f"{selected['url']}?token={token}"))
+    resp = make_response(redirect(f"{selected['url']}?{TOKEN_PARAM}={token}"))
     resp.set_cookie('survey_token', token, max_age=60 * 60 * 24 * 30)
     return resp
 
