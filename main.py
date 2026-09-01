@@ -17,8 +17,29 @@ TOKEN_TTL_HOURS = 2  # pending token 有效時間
 
 # 計數模式：
 #   COUNT_ON_ASSIGN=1 → 分配當下即計數（等同舊版行為，不需 SurveyCake 任何設定）
-#   未設定（預設）      → 方案 A：填答者填完導回 /complete 才計數
+#   未設定（預設）      → 方案 A：填答者填完（回 /complete 或 SurveyCake Webhook）才計數
 COUNT_ON_ASSIGN = os.environ.get('COUNT_ON_ASSIGN', '') == '1'
+
+# SurveyCake Webhook（專業版）：填答者送出後 SurveyCake POST 通知本服務。
+# 每份問卷各有一組 Hash key / IV key，由後台 Webhook 設定頁取得，設為環境變數（勿寫進程式）。
+# SURVEYCAKE_KEYS 為 JSON 陣列，例如：
+#   [{"hash":"...","iv":"..."}, {"hash":"...","iv":"..."}]
+# 解密時逐組嘗試，哪組解得出合法 JSON 就用哪組（不需預先對應 svid）。
+def _load_surveycake_keys():
+    raw = os.environ.get('SURVEYCAKE_KEYS', '')
+    if raw:
+        try:
+            return [(k['hash'], k['iv']) for k in json.loads(raw)]
+        except (json.JSONDecodeError, KeyError, TypeError):
+            pass
+    # 向後相容：單組金鑰
+    h, i = os.environ.get('SURVEYCAKE_HASH_KEY', ''), os.environ.get('SURVEYCAKE_IV_KEY', '')
+    return [(h, i)] if h and i else []
+
+
+SURVEYCAKE_KEYS = _load_surveycake_keys()
+SURVEYCAKE_DOMAIN = os.environ.get('SURVEYCAKE_DOMAIN', 'https://www.surveycake.com')
+TOKEN_ALIAS = os.environ.get('TOKEN_ALIAS', 'token')  # 隱藏題的代號
 
 # 初次建庫時匯入的預設問卷（之後皆由 /admin 管理）
 DEFAULT_SURVEYS = [
@@ -179,6 +200,88 @@ def complete():
     if already and already['status'] == 'completed':
         return "此份填答已登記過，謝謝參與！"
     return "此連結已失效或無效。", 400
+
+
+def mark_completed(token):
+    """把 pending 的 token 原子標記為 completed；回傳是否本次成功更新"""
+    conn = get_db_connection()
+    c = conn.cursor()
+    expire_stale_tokens(c)
+    c.execute(
+        "UPDATE responses SET status = 'completed', completed_at = ? "
+        "WHERE token = ? AND status = 'pending'",
+        (datetime.now().isoformat(timespec='seconds'), token)
+    )
+    updated = c.rowcount
+    conn.commit()
+    conn.close()
+    return updated > 0
+
+
+def decrypt_surveycake(encrypted_b64):
+    """AES-128-CBC 解密 SurveyCake Query API 回傳的 base64 內容。
+    逐組金鑰嘗試，回傳第一組能解出、且含 result 的 JSON。"""
+    import base64
+    from Crypto.Cipher import AES
+
+    cipher_bytes = base64.b64decode(encrypted_b64)
+    for hash_key, iv_key in SURVEYCAKE_KEYS:
+        try:
+            raw = AES.new(hash_key.encode('utf-8'), AES.MODE_CBC,
+                          iv_key.encode('utf-8')).decrypt(cipher_bytes)
+            text = raw.decode('utf-8', errors='ignore')
+            end = text.rfind('}')  # 去掉尾端補位雜訊，截到最後一個 '}'
+            if end == -1:
+                continue
+            payload = json.loads(text[:end + 1])
+            if isinstance(payload, dict) and 'result' in payload:
+                return payload
+        except (ValueError, json.JSONDecodeError):
+            continue
+    return None
+
+
+def extract_token(payload):
+    """從解密後的填答 JSON 取出代號為 TOKEN_ALIAS 的隱藏題答案"""
+    for item in payload.get('result', []):
+        if item.get('alias') == TOKEN_ALIAS or item.get('label') == TOKEN_ALIAS:
+            ans = item.get('answer') or []
+            if ans:
+                return str(ans[0]).strip()
+    return None
+
+
+@app.route('/webhook', methods=['POST'])
+def webhook():
+    """SurveyCake 送出後的伺服器對伺服器通知（比結束頁導向更可靠）"""
+    import requests
+
+    svid = request.form.get('svid') or request.args.get('svid')
+    hash_ = request.form.get('hash') or request.args.get('hash')
+    if not svid or not hash_:
+        return "missing svid/hash", 400
+    if not SURVEYCAKE_KEYS:
+        return "webhook keys not configured", 500
+
+    api = f"{SURVEYCAKE_DOMAIN}/webhook/v0/{svid}/{hash_}"
+    try:
+        resp = requests.get(api, timeout=10)
+        resp.raise_for_status()
+        payload = decrypt_surveycake(resp.content)
+    except Exception as e:
+        app.logger.warning("webhook decrypt failed: %s", e)
+        return "decrypt failed", 400
+
+    if not payload:
+        return "empty payload", 400
+    token = extract_token(payload)
+    if not token:
+        # 收到通知但找不到 token（隱藏題代號設定有誤），仍回 200 讓 SurveyCake 不重送
+        app.logger.warning("webhook: token not found in payload svid=%s", svid)
+        return "token not found", 200
+
+    mark_completed(token)  # 重複／已過期都安全：只有 pending 會被計數
+    return "ok", 200
 
 
 # ---------- 管理介面 ----------
