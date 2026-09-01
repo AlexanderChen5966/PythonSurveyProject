@@ -243,10 +243,13 @@ def decrypt_surveycake(encrypted_b64):
 
 def extract_token(payload):
     """從解密後的填答 JSON 取出代號為 TOKEN_ALIAS 的隱藏題答案"""
+    target = TOKEN_ALIAS.strip().lower()
     for item in payload.get('result', []):
-        if item.get('alias') == TOKEN_ALIAS or item.get('label') == TOKEN_ALIAS:
+        keys = [str(item.get(k, '')).strip().lower()
+                for k in ('alias', 'label', 'subject')]
+        if target in keys:
             ans = item.get('answer') or []
-            if ans:
+            if ans and str(ans[0]).strip():
                 return str(ans[0]).strip()
     return None
 
@@ -276,8 +279,14 @@ def webhook():
         return "empty payload", 400
     token = extract_token(payload)
     if not token:
-        # 收到通知但找不到 token（隱藏題代號設定有誤），仍回 200 讓 SurveyCake 不重送
-        app.logger.warning("webhook: token not found in payload svid=%s", svid)
+        # 收到通知但找不到 token（隱藏題代號設定有誤），仍回 200 讓 SurveyCake 不重送。
+        # 印出各題的 alias/label/subject/answer 以便診斷實際欄位名稱。
+        struct = [{"sn": it.get("sn"), "alias": it.get("alias"),
+                   "label": it.get("label"), "subject": it.get("subject"),
+                   "answer": it.get("answer")}
+                  for it in payload.get('result', [])]
+        app.logger.warning("webhook: token not found svid=%s TOKEN_ALIAS=%r result=%s",
+                           svid, TOKEN_ALIAS, json.dumps(struct, ensure_ascii=False))
         return "token not found", 200
 
     mark_completed(token)  # 重複／已過期都安全：只有 pending 會被計數
