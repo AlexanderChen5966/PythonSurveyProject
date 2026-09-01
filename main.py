@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 import sqlite3
 import secrets
 import json
+import random
 import os
 
 app = Flask(__name__)
@@ -144,16 +145,14 @@ def assign_survey():
                 return redirect(f"{row['url']}?{TOKEN_PARAM}={existing_token}")
             # expired：往下重新分配
 
-    # 平均分配：在啟用且未滿額的問卷中，挑「已分配數」最少的一份。
-    # 用 assigned（pending+completed）而非 completed，避免完成回報有時間差時
-    # 尖峰流量全部灌到同一份；tie-break 用 completed、id 保持穩定。
+    # 隨機分配：在啟用且未滿額（completed < 目標）的問卷中隨機抽一份（隨機抽樣）。
     candidates = [s for s in survey_stats(c)
                   if s['is_active'] and s['completed'] < s['max_count']]
     if not candidates:
         conn.commit()
         conn.close()
         return "問卷已全部收滿，謝謝參與！"
-    selected = min(candidates, key=lambda s: (s['assigned'], s['completed'], s['id']))
+    selected = random.choice(candidates)
 
     token = secrets.token_urlsafe(24)
     now = datetime.now().isoformat(timespec='seconds')
