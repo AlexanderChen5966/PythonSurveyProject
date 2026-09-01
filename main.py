@@ -291,7 +291,9 @@ def webhook():
                            svid, TOKEN_ALIAS, json.dumps(struct, ensure_ascii=False))
         return "token not found", 200
 
-    mark_completed(token)  # 重複／已過期都安全：只有 pending 會被計數
+    counted = mark_completed(token)  # 重複／已過期都安全：只有 pending 會被計數
+    app.logger.warning("webhook: token FOUND svid=%s token=%s counted=%s",
+                       svid, token, counted)
     return "ok", 200
 
 
